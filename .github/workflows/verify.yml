@@ -1,5 +1,3 @@
-name: Verify Code
-run-name: Verify code changes
 on:
   push:
     branches:
@@ -33,6 +31,8 @@ jobs:
             skip-pkg-cache: true
 
     build-and-push:
+      needs:
+        - verify_backend_quality
       runs-on: ubuntu-latest
       steps:
         - name: Check out the repo
