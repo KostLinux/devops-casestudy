@@ -100,3 +100,17 @@ make apply
 git commit -a -m "feat: Added some api endpoint"
 git push origin main
 ```
+
+## Comments from Author
+
+1. I refactored alpeso-test keycloak script and packed it as alpeso-test.tar.gz, the old one is under .bkup
+2. I have created a simple web application using Golang and Gin framework. The application listens on port 8089 and returns "ReallyNotBad" when POST request contains header "NotBad" with value "true".
+3. I have created a Cloudformation template to create prerequisites to run the terraform
+4. I have create a simple Github Actions workflow, in ideal world it should:
+    - 4.1 Run terraform tests when changes pushed to feature branch
+    - 4.2 Use Github environments for terraform apply
+    - 4.3 If github environment is `production` then apply should be done manually or via Git tag (if no github license)
+    - 4.4 If github environment is `development / QA` then apply should be done automatically
+5. I cannot test the AWS App Runner terraform, cause domain is paid and I don't have any free domain to test it.
+6. I could use AWS generated domain, but even then, AWS App Runner doesn't have any free tier, so I cannot test it without costs.
+7. The AWS App Runner is one of the easiest way of deploying simple web applications to AWS
