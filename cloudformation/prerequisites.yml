@@ -1,0 +1,59 @@
+Parameters:
+  BucketName:
+    Type: String
+    Description: Enter the name for the S3 bucket
+  RepositoryName:
+      Type: String
+      Description: Name of the ECR repository
+
+Resources:
+  StateBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref StateBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource: !Sub "arn:aws:s3:::${BucketName}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  ECRRepository:
+      Type: AWS::ECR::Repository
+      Properties:
+          RepositoryName: !Ref RepositoryName
+          RepositoryPolicyText:
+              Version: '2012-10-17'
+              Statement:
+                  - Sid: AllowPublicPull
+                    Effect: Allow
+                    Principal: '*'
+                    Action:
+                        - 'ecr:GetDownloadUrlForLayer'
+                        - 'ecr:BatchGetImage'
+                        - 'ecr:BatchCheckLayerAvailability'
+
+Outputs:
+  BucketNameOutput:
+    Value: !Ref BucketName
