@@ -25,3 +25,78 @@ You need at least:
 3) Provide infrastructure and create CI/CD with a web app that will listen to 8089 port and return "ReallyNotBad" string when POST request contains header "NotBad" with value "true", eg. `curl -X POST -H "NotBad: true" https://someurl:8089/` should return "ReallyNotBad".
 Use any technology you want to deploy the application to AWS. It can be Ansible, Terraform, etc. or a combination of some of them.
 Hint: https://aws.amazon.com/free/
+
+## Getting started
+
+**1. Clone this repository**
+
+```bash
+git clone git@github.com:KostLinux/devops-casestudy.git
+```
+
+**2. Configure environment variables**
+
+APP_ENV can be `development` or `production`. If APP_ENV is set to development, then it will show debug logs from Gin framework.
+
+```
+cp .env.example .env
+
+# App
+# APP_ENV development | production
+APP_ENV=development
+APP_HOST=localhost
+APP_PORT=8089
+
+# AWS Credentials
+AWS_ACCESS_KEY_ID="AWS_ACCESS_KEY"
+AWS_SECRET_ACCESS_KEY="AWS_SECRET_KEY"
+```
+
+**3. Create prerequisites via [Cloudformation Template](cloudformation/prerequisites.yml) in AWS**
+
+```bash
+aws cloudformation create-stack --stack-name "AppRunnerPrerequisites" --template-body file://cloudformation/prerequisites.yml --parameters ParameterKey=BucketName,ParameterValue=alpeso-s3-bucket ParameterKey=RepositoryName,ParameterValue=golang-web-application
+```
+
+**4. Configure terraform in terraform/ directory**
+
+Use your favorite code editor to edit `terraform/main.tf`, `terraform/provider.tf`, and `terraform/versions.tf` files.
+
+Under versions.tf file you need to change the bucket name to bucket name which you created in step 3.
+
+**Note** Due to Remote TFState Backend, prerequisites must be configured! (Step 3)
+
+**5. Configure Github secrets**
+
+Create a new repository in Github and add the following secrets:
+
+- AWS_ACCESS_KEY_ID
+- AWS_SECRET_ACCESS_KEY
+- ECR_REPOSITORY_NAME e.g golang-web-application
+
+**5. Write some code and run the application**
+
+```bash
+code .
+make run
+```
+
+If you want to deploy to AWS, make sure your application works via Dockerfile
+
+```bash
+make build
+make run-docker
+```
+
+**6. Deploy infrastructure**
+
+```bash
+make apply
+```
+
+**7. Commit changes**
+
+```bash
+git commit -a -m "feat: Added some api endpoint"
+git push origin main
+```

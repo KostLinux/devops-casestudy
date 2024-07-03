@@ -1,0 +1,101 @@
+on:
+  push:
+    branches:
+      - "*"
+
+permissions:
+    contents: read
+    packages: read
+    statuses: write
+    pull-requests: write
+
+jobs:             
+    verify:
+      name: Verify Backend Code Quality
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - uses: actions/setup-go@v5
+          with:
+            go-version: '1.22'
+
+        - name: golangci-lint
+          uses: golangci/golangci-lint-action@v4
+          with:
+            version: v1.56.2
+            working-directory: ./
+            only-new-issues: false
+            args: --concurrency=16 --timeout=5m --out-format=github-actions --issues-exit-code=1
+            skip-cache: false
+            skip-pkg-cache: true
+
+    build:
+      needs:
+        - verify
+      runs-on: ubuntu-latest
+      steps:
+        - name: Check out the repo
+          uses: actions/checkout@v4
+        
+        - name: Configure AWS credentials
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: eu-west-2
+        
+        - name: Login to Amazon ECR
+          id: login-ecr
+          uses: aws-actions/amazon-ecr-login@v2
+        
+        - name: Extract tag name or set to latest
+          id: extract_tag
+          shell: bash
+          run: |
+            if [[ $GITHUB_REF == refs/tags/* ]]; then
+              echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+            else
+              echo "tag=latest" >> $GITHUB_OUTPUT
+            fi
+        
+        - name: Build, tag, and push image to Amazon ECR
+          env:
+            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+            ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}
+            IMAGE_TAG: ${{ steps.extract_tag.outputs.tag }}
+          run: |
+            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    deploy:
+        name: Deploy Infrastructure Changes
+        runs-on: ubuntu-latest
+        needs:
+            - build
+        steps:
+          - name: Checkout code
+            uses: actions/checkout@v3
+    
+          - name: Setup Terraform
+            uses: hashicorp/setup-terraform@v3
+            with:
+                terraform_version: 1.9.0
+    
+          - name: Terraform Init
+            run: cd terraform && terraform init
+            env:
+                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
+          - name: Terraform Plan
+            run: cd terraform && terraform plan
+            env:
+                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    
+          - name: Terraform Apply
+            run: cd terraform && terraform apply -auto-approve
+            env:
+                AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

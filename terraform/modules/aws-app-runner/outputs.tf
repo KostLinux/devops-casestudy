@@ -35,10 +35,10 @@ output "route53_zone_name" {
 
 output "apprunner_service_id" {
     description = "App Runner Service ID for the application"
-    value = module.example_app_runner.service_id
+    value = module.app_runner.service_id
 }
 
 output "certificate_validation_records" {
     description = "Certificate Validation Records for the application"
-    value = module.example_app_runner.custom_domain_association_certificate_validation_records
+    value = module.app_runner.custom_domain_association_certificate_validation_records
 }

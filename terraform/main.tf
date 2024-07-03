@@ -1,9 +1,22 @@
 module "aws_app_runner" {
     source = "./modules/aws-app-runner"
 
-    application_name = "GolangWebApp"
+    // application_name + route53_domain will be domain for AWS App Runner
+    application_name = "golang-web-app"
     application_port = 8089
+    route53_domain = "example.com"
+
     application_environment_variables = [
+        {
+            name  = "APP_ENV"
+            value = "production"
+            description = "Environment in which the application runs"
+        },
+        {
+            name  = "APP_HOST"
+            value = "golang-web-app.example.com"
+            description = "Log level for the application"
+        },
         {
             name  = "APP_PORT"
             value = "8089"
@@ -19,7 +32,6 @@ module "aws_app_runner" {
         "0.0.0.0/0"
     ]
 
-    route53_domain = "example.com"
     application_repository = "golang-web-app"
     application_image_tag = "latest"
 }

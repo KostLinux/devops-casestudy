@@ -22,7 +22,7 @@ resource "aws_security_group" "app_runner" {
         Type = "Private"
     }
 
-    ingress = {
+    ingress {
         description = "Allow traffic from the load balancer"
         from_port   = var.application_port
         to_port     = var.application_port
@@ -30,12 +30,11 @@ resource "aws_security_group" "app_runner" {
         cidr_blocks = sort(distinct(var.allowed_client_ip_list))
     }
 
-    egress = {
+    egress {
         description = "Allow all outbound traffic"
         from_port   = 0
         to_port     = 0
         protocol    = "-1"
         cidr_blocks = sort(distinct(var.allowed_internet_ip_list))
     }
-
 }

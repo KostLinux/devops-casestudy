@@ -3,21 +3,31 @@ _DEFAULT_GOAL := run
 run:
 	go run main.go
 
+build:
+	docker build -t alpeso-web:dev .
+
+run-docker:
+	docker run --env-file ./.env -p 8089:8089 alpeso-web:dev
+
 init:
-	@source .env \
+	@cd terraform \
+	source .env \
     && terraform init -upgrade -reconfigure
 
 format:
 	@terraform fmt -recursive
 	
 plan:
-	@source .env \
-    init \
+	@cd terraform \
+	source .env \
+    && terraform init -upgrade -reconfigure \
 	&& terraform plan
 
 apply: 
-	@source .env \
-	plan \
+	@cd terraform \
+	source .env \
+    && terraform init -upgrade -reconfigure \
+	&& terraform plan \
 	&& terraform apply -auto-approve
 
 tfsec:
