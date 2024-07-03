@@ -7,7 +7,6 @@ import (
 )
 
 func Router(router *gin.Engine) *gin.Engine {
-
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
 	router.Use(SecurityHeaders())

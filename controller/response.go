@@ -12,5 +12,4 @@ func NotBadRequest(ctx *gin.Context) {
 		ctx.String(http.StatusOK, "ReallyNotBad")
 	}
 	ctx.Status(http.StatusBadRequest)
-
 }

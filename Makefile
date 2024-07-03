@@ -23,7 +23,15 @@ apply:
 tfsec:
 	@tfsec
 
-lint:
+tflint:
 	@tflint
 
-validate: tfsec lint
+terraform-validate: tfsec tflint
+
+linter:
+	@golangci-lint run
+
+gosec:
+	@gosec -quiet ./...
+
+validate: linter gosec
