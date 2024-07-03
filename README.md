@@ -109,8 +109,9 @@ git push origin main
 4. I have create a simple Github Actions workflow, in ideal world it should:
     - 4.1 Run terraform tests when changes pushed to feature branch
     - 4.2 Use Github environments for terraform apply
-    - 4.3 If github environment is `production` then apply should be done manually or via Git tag (if no github license)
-    - 4.4 If github environment is `development / QA` then apply should be done automatically
+    - 4.3 If Github environments used, then folders in terraform can have different environments like `terraform/environment/{test,prod}/{eu-west-1,us-east-1}` etc.
+    - 4.4 If github environment is `production` then apply should be done manually or via Git tag (if no github license)
+    - 4.5 If github environment is `development / QA` then apply should be done automatically
 5. I cannot test the AWS App Runner terraform, cause domain is paid and I don't have any free domain to test it.
 6. I could use AWS generated domain, but even then, AWS App Runner doesn't have any free tier, so I cannot test it without costs.
 7. The AWS App Runner is one of the easiest way of deploying simple web applications to AWS
